@@ -190,11 +190,11 @@ const Todolist = () => {
                 <tbody>
                   {currentTodo
                     .filter((todo) => todo.completed === false)
-                    .map((todo) => {
+                    .map((todo, index) => {
                       return (
                         <>
                           <tr>
-                            <td>{todo._id}</td>
+                            <td>{index + 1}</td>
 
                             {todoEditing === todo._id ? (
                               <>
@@ -267,11 +267,11 @@ const Todolist = () => {
                 <tbody>
                   {currentTodo
                     .filter((todo) => todo.completed === true)
-                    .map((todo) => {
+                    .map((todo, index) => {
                       return (
                         <>
                           <tr>
-                            <td>{todo._id}</td>
+                            <td>{index + 1}</td>
 
                             {todoEditing === todo._id ? (
                               <>
