@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./UserLogin.css";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
+import UserInfo from "./UserInfo";
 const UserLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +16,8 @@ const UserLogin = () => {
       navigate("/");
     }
   }, []);
-  const handleLogin = () => {
+  const handleLogin = (e) => {
+    e.preventDefault();
     if (email === "" || password === "") {
       alert("Email or Password is wrong!!!");
     } else {
@@ -46,7 +48,7 @@ const UserLogin = () => {
               <h3>Sign In</h3>
             </div>
             <div className="card-body">
-              <form onSubmit={handleLogin}>
+              <form onSubmit={(e) => handleLogin(e)}>
                 <div className="input-group form-group">
                   <div className="input-group-prepend">
                     <span className="input-group-text">
@@ -78,11 +80,9 @@ const UserLogin = () => {
                   Remember Me
                 </div>
                 <div className="form-group">
-                  <input
-                    type="submit"
-                    defaultValue="Login"
-                    className="btn float-right login_btn"
-                  />
+                  <div className="form-group d-flex justify-content-center">
+                    <button className="btn btn-success">Login</button>
+                  </div>
                 </div>
               </form>
             </div>
@@ -97,5 +97,4 @@ const UserLogin = () => {
     </>
   );
 };
-
 export default UserLogin;
