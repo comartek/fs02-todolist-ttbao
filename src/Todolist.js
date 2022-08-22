@@ -2,14 +2,23 @@ import React, { useState, useEffect } from "react";
 import "./Todo.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import PaginationTodo from "./components/PaginationTodo";
 const Todolist = () => {
   const navigate = useNavigate();
   const [newItem, setNewItem] = useState("");
-  const [item, setItem] = useState([]);
+
   const [taskCompletd, setTaskCompleted] = useState([]);
   const [todoEditing, setTodoEditing] = useState(false);
   const [editingText, setEditingText] = useState("");
+  const [data, setData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [todoPerPage] = useState(10);
+
   const token = localStorage.getItem("token");
+
+  const indexOfLastTodo = currentPage * todoPerPage;
+  const indexOfFirstTodo = indexOfLastTodo - todoPerPage;
+  const currentTodo = data.slice(indexOfFirstTodo, indexOfLastTodo);
 
   const getTask = () => {
     axios
@@ -20,9 +29,7 @@ const Todolist = () => {
         },
       })
       .then((res) => {
-        console.log(res);
-        console.log(res.data);
-        setItem(res.data.data);
+        setData(res.data.data);
       });
   };
 
@@ -34,8 +41,6 @@ const Todolist = () => {
         },
       })
       .then((res) => {
-        console.log(res);
-        console.log(res.data);
         setTaskCompleted(res.data.data);
       });
   };
@@ -43,6 +48,7 @@ const Todolist = () => {
   useEffect(() => {
     getTask();
     getTaskCompleted();
+    fetchPagination();
   }, []);
 
   const addTask = () => {
@@ -63,9 +69,7 @@ const Todolist = () => {
           }
         )
         .then((res) => {
-          console.log(res);
-          console.log(res.data);
-          setItem((prev) => [...prev, res.data.data]);
+          setData((prev) => [res.data.data, ...prev]);
           setNewItem("");
         });
     }
@@ -89,16 +93,6 @@ const Todolist = () => {
   };
 
   const editTodo = (id) => {
-    // const updateTodos = item.map((todo) => {
-    //   if (todo.id === id) {
-    //     todo.content = editingText;
-    //   }
-    //   return todo;
-    // });
-
-    // setItem(updateTodos);
-    // setTodoEditing(null);
-    // setEditingText("");
     console.log(id);
     axios
       .put(
@@ -114,8 +108,6 @@ const Todolist = () => {
         }
       )
       .then((res) => {
-        console.log(res);
-        console.log(res.data);
         setTodoEditing(null);
         getTask();
       });
@@ -136,8 +128,6 @@ const Todolist = () => {
         }
       )
       .then((res) => {
-        console.log(res);
-        console.log(res.data);
         getTask();
         getTaskCompleted();
       });
@@ -148,6 +138,24 @@ const Todolist = () => {
     navigate("/");
   };
 
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const fetchPagination = async () => {
+    const res = await axios.get(
+      `https://api-nodejs-todolist.herokuapp.com/task`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log(res.data);
+    setData(res.data.data);
+  };
   return (
     <>
       <div className="container-fluid">
@@ -180,7 +188,7 @@ const Todolist = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {item
+                  {currentTodo
                     .filter((todo) => todo.completed === false)
                     .map((todo) => {
                       return (
@@ -220,11 +228,7 @@ const Todolist = () => {
                                   {todo.description}
                                 </td>
                                 <td>{todo?.createdAt?.slice(0, 10)}</td>
-                                <td>
-                                  <i
-                                    className="fas fa-trash"
-                                    onClick={() => removeTask(todo)}
-                                  ></i>
+                                <td className="d-flex">
                                   <i
                                     className="fas fa-edit ml-3"
                                     onClick={() => setTodoEditing(todo._id)}
@@ -234,6 +238,10 @@ const Todolist = () => {
                                     className="ml-3"
                                     onChange={() => toggleComplete(todo)}
                                   />
+                                  <i
+                                    className="fas fa-trash ml-3"
+                                    onClick={() => removeTask(todo)}
+                                  ></i>
                                 </td>
                               </>
                             )}
@@ -257,62 +265,69 @@ const Todolist = () => {
                 </thead>
 
                 <tbody>
-                  {taskCompletd.map((todo) => {
-                    return (
-                      <>
-                        <tr>
-                          <td>{todo._id}</td>
+                  {currentTodo
+                    .filter((todo) => todo.completed === true)
+                    .map((todo) => {
+                      return (
+                        <>
+                          <tr>
+                            <td>{todo._id}</td>
 
-                          {todoEditing === todo._id ? (
-                            <>
-                              <td>
-                                {" "}
-                                <input
-                                  type="text"
-                                  value={editingText}
-                                  onChange={(e) =>
-                                    setEditingText(e.target.value)
-                                  }
-                                />
-                              </td>
-                              <td>
-                                <button
-                                  className="btn btn-success"
-                                  onClick={() => editTodo(todo)}
+                            {todoEditing === todo._id ? (
+                              <>
+                                <td>
+                                  {" "}
+                                  <input
+                                    type="text"
+                                    value={editingText}
+                                    onChange={(e) =>
+                                      setEditingText(e.target.value)
+                                    }
+                                  />
+                                </td>
+                                <td>
+                                  <button
+                                    className="btn btn-success"
+                                    onClick={() => editTodo(todo)}
+                                  >
+                                    Update
+                                  </button>
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td
+                                  style={{
+                                    textDecoration: todo.completed
+                                      ? "line-through"
+                                      : "none",
+                                  }}
                                 >
-                                  Update
-                                </button>
-                              </td>
-                            </>
-                          ) : (
-                            <>
-                              <td
-                                style={{
-                                  textDecoration: todo.completed
-                                    ? "line-through"
-                                    : "none",
-                                }}
-                              >
-                                {todo.description}
-                              </td>
-                              <td>{todo?.createdAt?.slice(0, 10)}</td>
-                              <td>
-                                <i
-                                  className="fas fa-trash"
-                                  onClick={() => removeTask(todo)}
-                                ></i>
-                              </td>
-                            </>
-                          )}
-                        </tr>
-                      </>
-                    );
-                  })}
+                                  {todo.description}
+                                </td>
+                                <td>{todo?.createdAt?.slice(0, 10)}</td>
+                                <td>
+                                  <i
+                                    className="fas fa-trash"
+                                    onClick={() => removeTask(todo)}
+                                  ></i>
+                                </td>
+                              </>
+                            )}
+                          </tr>
+                        </>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
           </div>
         </div>
+        <PaginationTodo
+          todoPerPage={todoPerPage}
+          totalTodo={data.length}
+          paginate={paginate}
+        />
       </div>
     </>
   );
