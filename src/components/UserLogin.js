@@ -2,11 +2,25 @@ import React, { useState, useEffect } from "react";
 import "./UserLogin.css";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
-import UserInfo from "./UserInfo";
+import { notification } from "antd";
 const UserLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+
+  const openNotificationWithIcon = (type) => {
+    if (type === "success") {
+      notification["success"]({
+        message: "Login SuccessFully!!!",
+        description: "Welcome to Todolist",
+      });
+    } else if (type === "error") {
+      notification["error"]({
+        message: "Login Fail!",
+        description: "Email or Password is wrong!!",
+      });
+    }
+  };
 
   useEffect(() => {
     const user_logged = localStorage.getItem("token");
@@ -19,7 +33,7 @@ const UserLogin = () => {
   const handleLogin = (e) => {
     e.preventDefault();
     if (email === "" || password === "") {
-      alert("Email or Password is wrong!!!");
+      openNotificationWithIcon("error");
     } else {
       axios
         .post(`https://api-nodejs-todolist.herokuapp.com/user/login`, {
@@ -32,6 +46,7 @@ const UserLogin = () => {
 
           localStorage.setItem("token", res.data.token);
           navigate("/todolist");
+          openNotificationWithIcon("success");
         });
     }
   };
@@ -39,10 +54,7 @@ const UserLogin = () => {
   return (
     <>
       <div className="container">
-        <div
-          className="d-flex justify-content-center h-100"
-          style={{ marginTop: "100px" }}
-        >
+        <div className="d-flex justify-content-center h-100">
           <div className="card">
             <div className="card-header">
               <h3>Sign In</h3>

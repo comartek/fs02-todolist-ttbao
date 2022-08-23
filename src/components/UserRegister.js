@@ -27,10 +27,7 @@ const UserRegister = () => {
   };
   return (
     <div className="container">
-      <div
-        className="d-flex justify-content-center h-100"
-        style={{ marginTop: "100px" }}
-      >
+      <div className="d-flex justify-content-center h-100">
         <div className="card">
           <div className="card-header">
             <h3>Sign Up</h3>

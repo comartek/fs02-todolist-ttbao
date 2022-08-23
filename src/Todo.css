@@ -47,3 +47,18 @@
     .fas {
         cursor: pointer;
     }
+
+    .info-user {
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .ant-spin .ant-spin-dot {
+        position: absolute;
+        top: 30%;
+        left: 49%;
+        z-index: 10;
+        font-size: 50px;
+    }
+
+    

@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from "react";
 import "./Todo.css";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
 import PaginationTodo from "./components/PaginationTodo";
+import UserInfo from "./components/UserInfo";
+import { Button, Modal, Popconfirm, notification } from "antd";
+import { Avatar } from "antd";
+import { UserOutlined } from "@ant-design/icons";
+import SpinLoading from "./components/SpinLoading";
+
 const Todolist = () => {
   const navigate = useNavigate();
   const [newItem, setNewItem] = useState("");
@@ -13,12 +19,54 @@ const Todolist = () => {
   const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [todoPerPage] = useState(10);
-
+  const [user, setUser] = useState("");
   const token = localStorage.getItem("token");
+  const [checked, setChecked] = useState(true);
+  //notification
+  const openNotificationWithIcon = (type) => {
+    if (type === "success") {
+      notification["success"]({
+        message: "Success",
+      });
+    } else if (type == "warning") {
+      notification["warning"]({
+        message: "Warning!!!",
+        description: "Type something!!!",
+      });
+    }
+  };
 
+  //loading
+  const [loading, setLoading] = useState(false);
+
+  //popup delete todo
+  const [visible, setVisible] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const conFirmDeleteTodo = (todo) => {
+    removeTask(todo);
+  };
+
+  const cancelDeleteTodo = (id) => {};
+
+  //pagination
   const indexOfLastTodo = currentPage * todoPerPage;
   const indexOfFirstTodo = indexOfLastTodo - todoPerPage;
   const currentTodo = data.slice(indexOfFirstTodo, indexOfLastTodo);
+
+  //modal
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const showModal = () => {
+    getUserInfo();
+    setIsModalVisible(true);
+  };
+
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
 
   const getTask = () => {
     axios
@@ -53,8 +101,9 @@ const Todolist = () => {
 
   const addTask = () => {
     if (newItem === "") {
-      alert("Xin hãy nhập gì đó");
+      openNotificationWithIcon("warning");
     } else {
+      setLoading(true);
       axios
         .post(
           `https://api-nodejs-todolist.herokuapp.com/task`,
@@ -71,11 +120,14 @@ const Todolist = () => {
         .then((res) => {
           setData((prev) => [res.data.data, ...prev]);
           setNewItem("");
+          setLoading(false);
+          openNotificationWithIcon("success");
         });
     }
   };
 
   const removeTask = (todo) => {
+    setLoading(true);
     axios
       .delete(`https://api-nodejs-todolist.herokuapp.com/task/${todo._id}`, {
         headers: {
@@ -86,14 +138,17 @@ const Todolist = () => {
       .then((res) => {
         console.log(res);
         console.log(res.data);
-
-        getTask();
+        setLoading(false);
+        openNotificationWithIcon("success");
+        const newData = data.filter((item) => item._id !== todo._id);
+        setData(newData);
         getTaskCompleted();
       });
   };
 
   const editTodo = (id) => {
     console.log(id);
+    setLoading(true);
     axios
       .put(
         `https://api-nodejs-todolist.herokuapp.com/task/${id}`,
@@ -110,10 +165,14 @@ const Todolist = () => {
       .then((res) => {
         setTodoEditing(null);
         getTask();
+        setLoading(false);
+        openNotificationWithIcon("success");
       });
   };
 
   const toggleComplete = (todo) => {
+    setLoading(true);
+    setChecked(true);
     axios
       .put(
         `https://api-nodejs-todolist.herokuapp.com/task/${todo._id}`,
@@ -129,7 +188,12 @@ const Todolist = () => {
       )
       .then((res) => {
         getTask();
-        getTaskCompleted();
+        // getTaskCompleted();
+        console.log(res.data);
+        setData(data);
+        setLoading(false);
+        setChecked(false);
+        openNotificationWithIcon("success");
       });
   };
 
@@ -156,12 +220,43 @@ const Todolist = () => {
     console.log(res.data);
     setData(res.data.data);
   };
+
+  const getUserInfo = () => {
+    axios
+      .get(
+        `https://api-nodejs-todolist.herokuapp.com/user/me`,
+
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+        setUser(res.data);
+      });
+  };
   return (
     <>
+      {loading ? <SpinLoading /> : ""}
+      <Modal
+        title="User Info"
+        visible={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        <UserInfo user={user} />
+      </Modal>
+
       <div className="container-fluid">
         <button className="btn btn-danger" onClick={() => Logout()}>
           <i class="fas fa-sign-out-alt">Log out</i>
         </button>
+        <div className="info-user d-flex justify-content-end align-items-center">
+          <Avatar icon={<UserOutlined />} onClick={showModal} />
+        </div>
+
         <div className="row">
           <div className="col-12 d-flex justify-content-center">
             <div className="todo-container">
@@ -199,8 +294,8 @@ const Todolist = () => {
                             {todoEditing === todo._id ? (
                               <>
                                 <td>
-                                  {" "}
                                   <input
+                                    style={{ color: "black" }}
                                     type="text"
                                     value={editingText}
                                     onChange={(e) =>
@@ -228,7 +323,7 @@ const Todolist = () => {
                                   {todo.description}
                                 </td>
                                 <td>{todo?.createdAt?.slice(0, 10)}</td>
-                                <td className="d-flex">
+                                <td className="d-flex justify-content-center">
                                   <i
                                     className="fas fa-edit ml-3"
                                     onClick={() => setTodoEditing(todo._id)}
@@ -238,10 +333,21 @@ const Todolist = () => {
                                     className="ml-3"
                                     onChange={() => toggleComplete(todo)}
                                   />
-                                  <i
-                                    className="fas fa-trash ml-3"
-                                    onClick={() => removeTask(todo)}
-                                  ></i>
+
+                                  <Popconfirm
+                                    placement="bottomLeft"
+                                    title="Are you sure delete this task?"
+                                    onConfirm={() => {
+                                      conFirmDeleteTodo(todo);
+                                    }}
+                                    onCancel={() => {
+                                      cancelDeleteTodo();
+                                    }}
+                                    okText="Yes"
+                                    cancelText="No"
+                                  >
+                                    <i className="fas fa-trash ml-3"></i>
+                                  </Popconfirm>
                                 </td>
                               </>
                             )}
@@ -283,6 +389,7 @@ const Todolist = () => {
                                     onChange={(e) =>
                                       setEditingText(e.target.value)
                                     }
+                                    checked={checked}
                                   />
                                 </td>
                                 <td>
@@ -307,10 +414,20 @@ const Todolist = () => {
                                 </td>
                                 <td>{todo?.createdAt?.slice(0, 10)}</td>
                                 <td>
-                                  <i
-                                    className="fas fa-trash"
-                                    onClick={() => removeTask(todo)}
-                                  ></i>
+                                  <Popconfirm
+                                    placement="bottomLeft"
+                                    title="Are you sure delete this task?"
+                                    onConfirm={() => {
+                                      conFirmDeleteTodo(todo);
+                                    }}
+                                    onCancel={() => {
+                                      cancelDeleteTodo();
+                                    }}
+                                    okText="Yes"
+                                    cancelText="No"
+                                  >
+                                    <i className="fas fa-trash ml-3"></i>
+                                  </Popconfirm>
                                 </td>
                               </>
                             )}

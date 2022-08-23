@@ -4,6 +4,7 @@ import UserLogin from "./components/UserLogin";
 import UserRegister from "./components/UserRegister";
 import React, { useEffect } from "react";
 import PrivateRoutes from "./components/PrivateRoutes";
+import UserInfo from "./components/UserInfo";
 function App() {
   return (
     <BrowserRouter>
@@ -13,6 +14,9 @@ function App() {
         <Route path="/register" element={<UserRegister />} />
         <Route element={<PrivateRoutes />}>
           <Route path="todolist" element={<Todolist />} />
+        </Route>
+        <Route element={<PrivateRoutes />}>
+          <Route path="userinfo" element={<UserInfo />} />
         </Route>
       </Routes>
     </BrowserRouter>
