@@ -4,11 +4,11 @@ import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
 import PaginationTodo from "./components/PaginationTodo";
 import UserInfo from "./components/UserInfo";
-import { Button, Modal, Popconfirm, notification } from "antd";
+import { Modal, Popconfirm } from "antd";
 import { Avatar } from "antd";
-import { UserOutlined } from "@ant-design/icons";
 import SpinLoading from "./components/SpinLoading";
-
+import { TodoListService } from "./services/TodoServices";
+import { notificationTodo } from "./notification/notification";
 const Todolist = () => {
   const navigate = useNavigate();
   const [newItem, setNewItem] = useState("");
@@ -22,19 +22,7 @@ const Todolist = () => {
   const [user, setUser] = useState("");
   const token = localStorage.getItem("token");
   const [checked, setChecked] = useState(true);
-  //notification
-  const openNotificationWithIcon = (type) => {
-    if (type === "success") {
-      notification["success"]({
-        message: "Success",
-      });
-    } else if (type == "warning") {
-      notification["warning"]({
-        message: "Warning!!!",
-        description: "Type something!!!",
-      });
-    }
-  };
+  const [image, setImage] = useState("");
 
   //loading
   const [loading, setLoading] = useState(false);
@@ -56,7 +44,6 @@ const Todolist = () => {
   //modal
   const [isModalVisible, setIsModalVisible] = useState(false);
   const showModal = () => {
-    getUserInfo();
     setIsModalVisible(true);
   };
 
@@ -69,132 +56,73 @@ const Todolist = () => {
   };
 
   const getTask = () => {
-    axios
-      .get(`https://api-nodejs-todolist.herokuapp.com/task`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        setData(res.data.data);
-      });
+    TodoListService.getAllTask().then((res) => {
+      setData(res.data.data);
+    });
   };
 
   const getTaskCompleted = () => {
-    axios
-      .get(`https://api-nodejs-todolist.herokuapp.com/task?completed=true`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        setTaskCompleted(res.data.data);
-      });
+    TodoListService.getAllTaskComplete().then((res) => {
+      setTaskCompleted(res.data.data);
+    });
   };
 
   useEffect(() => {
     getTask();
+    getUserInfo();
     getTaskCompleted();
     fetchPagination();
   }, []);
 
   const addTask = () => {
     if (newItem === "") {
-      openNotificationWithIcon("warning");
+      notificationTodo("warning", "Input cannot Blank!!!");
     } else {
       setLoading(true);
-      axios
-        .post(
-          `https://api-nodejs-todolist.herokuapp.com/task`,
-          {
-            description: newItem,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-        .then((res) => {
-          setData((prev) => [res.data.data, ...prev]);
-          setNewItem("");
-          setLoading(false);
-          openNotificationWithIcon("success");
-        });
+      TodoListService.add(newItem).then((res) => {
+        setData((prev) => [res.data.data, ...prev]);
+        setNewItem("");
+        setLoading(false);
+        notificationTodo("success", "Create Task success");
+      });
     }
   };
 
   const removeTask = (todo) => {
     setLoading(true);
-    axios
-      .delete(`https://api-nodejs-todolist.herokuapp.com/task/${todo._id}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        console.log(res);
-        console.log(res.data);
-        setLoading(false);
-        openNotificationWithIcon("success");
-        const newData = data.filter((item) => item._id !== todo._id);
-        setData(newData);
-        getTaskCompleted();
-      });
+    TodoListService.delete(todo._id).then((res) => {
+      console.log(res);
+      console.log(res.data);
+      setLoading(false);
+      notificationTodo("success", "Remove Task Success");
+      const newData = data.filter((item) => item._id !== todo._id);
+      setData(newData);
+      getTaskCompleted();
+    });
   };
 
   const editTodo = (id) => {
     console.log(id);
     setLoading(true);
-    axios
-      .put(
-        `https://api-nodejs-todolist.herokuapp.com/task/${id}`,
-        {
-          description: editingText,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      .then((res) => {
-        setTodoEditing(null);
-        getTask();
-        setLoading(false);
-        openNotificationWithIcon("success");
-      });
+    TodoListService.edit(editingText, id).then((res) => {
+      setTodoEditing(null);
+      getTask();
+      setLoading(false);
+      notificationTodo("success", "Edit Task Success");
+    });
   };
 
   const toggleComplete = (todo) => {
     setLoading(true);
     setChecked(true);
-    axios
-      .put(
-        `https://api-nodejs-todolist.herokuapp.com/task/${todo._id}`,
-        {
-          completed: true,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      .then((res) => {
-        getTask();
-        // getTaskCompleted();
-        console.log(res.data);
-        setData(data);
-        setLoading(false);
-        setChecked(false);
-        openNotificationWithIcon("success");
-      });
+    TodoListService.checkDoneTask(todo._id).then((res) => {
+      getTask();
+      console.log(res.data);
+      setData(data);
+      setLoading(false);
+      setChecked(false);
+      notificationTodo("success", "Check task Complete");
+    });
   };
 
   const Logout = () => {
@@ -235,6 +163,18 @@ const Todolist = () => {
       .then((res) => {
         console.log(res.data);
         setUser(res.data);
+        getAvatarUser(res.data._id);
+      });
+  };
+
+  const getAvatarUser = (id) => {
+    setLoading(true);
+    axios
+      .get(`https://api-nodejs-todolist.herokuapp.com/user/${id}/avatar`)
+      .then((res) => {
+        console.log(res.request.responseURL);
+        setImage(res.request.responseURL);
+        setLoading(false);
       });
   };
   return (
@@ -246,7 +186,7 @@ const Todolist = () => {
         onOk={handleOk}
         onCancel={handleCancel}
       >
-        <UserInfo user={user} />
+        <UserInfo user={user} image={image} />
       </Modal>
 
       <div className="container-fluid">
@@ -254,7 +194,7 @@ const Todolist = () => {
           <i class="fas fa-sign-out-alt">Log out</i>
         </button>
         <div className="info-user d-flex justify-content-end align-items-center">
-          <Avatar icon={<UserOutlined />} onClick={showModal} />
+          <Avatar src={image} onClick={showModal} size={64} />
         </div>
 
         <div className="row">

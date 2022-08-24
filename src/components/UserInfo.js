@@ -2,14 +2,31 @@ import React, { useState } from "react";
 import { Col, Row } from "antd";
 import { Image, Input } from "antd";
 import axios from "axios";
+import SpinLoading from "./SpinLoading";
+import { notification } from "antd";
+
 const UserInfo = (props) => {
-  const { user } = props;
+  const { user, image } = props;
   const [picture, setPicture] = useState({});
   const [avatar, setAvatar] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const token = localStorage.getItem("token");
   const [infoEditting, setInfoEditting] = useState(false);
   const [edittingText, setEdittingText] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const openNotificationWithIcon = (type) => {
+    if (type === "success") {
+      notification["success"]({
+        message: "Success",
+      });
+    } else if (type === "warning") {
+      notification["warning"]({
+        message: "Warning!!!",
+        description: "File upload is blank!",
+      });
+    }
+  };
 
   const uploadPicture = (e) => {
     setPicture({
@@ -20,34 +37,33 @@ const UserInfo = (props) => {
       /* this contains the file we want to send */
       pictureAsFile: e.target.files[0],
     });
+    console.log(picture);
   };
   const setImageAction = async (event) => {
     event.preventDefault();
-
-    const formData = new FormData().append("file", picture.pictureAsFile);
-
-    console.log(picture.pictureAsFile);
-
-    const data = await axios
-      .post(
-        `https://api-nodejs-todolist.herokuapp.com/user/me/avatar`,
-        {
-          body: formData,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      .then((res) => {
-        console.log(res.data);
-      });
-    const uploadedImage = await data.json();
-    if (uploadedImage) {
-      console.log("Successfully uploaded image");
+    if (picture.pictureAsFile === undefined) {
+      openNotificationWithIcon("warning");
     } else {
-      console.log("Error Found");
+      setLoading(true);
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      const formdata = new FormData();
+      formdata.append("avatar", picture.pictureAsFile);
+      axios
+        .post(
+          `https://api-nodejs-todolist.herokuapp.com/user/me/avatar`,
+          formdata,
+          { headers }
+        )
+        .then((res) => {
+          openNotificationWithIcon("success");
+          setLoading(false);
+          setAvatar(picture.picturePreview);
+          setPicture("");
+        });
     }
   };
 
@@ -74,22 +90,16 @@ const UserInfo = (props) => {
 
   return (
     <>
+      {loading ? <SpinLoading /> : ""}
       <Row>
         <Col span={12}>
-          {selectedImage ? (
+          {!avatar ? (
             <>
-              <img
-                alt="not fount"
-                width={"250px"}
-                src={URL.createObjectURL(selectedImage)}
-              />
+              <Image width={200} src={image} />
             </>
           ) : (
             <>
-              <Image
-                width={200}
-                src="https://t4.ftcdn.net/jpg/02/29/75/83/360_F_229758328_7x8jwCwjtBMmC6rgFzLFhZoEpLobB6L8.jpg"
-              />
+              <Image width={200} src={avatar} />
             </>
           )}
         </Col>
@@ -127,10 +137,14 @@ const UserInfo = (props) => {
           <div>
             <div className="content landing">
               <form onSubmit={setImageAction}>
-                <input type="file" name="image" onChange={uploadPicture} />
+                <input
+                  type="file"
+                  name="image"
+                  onChange={(e) => uploadPicture(e)}
+                />
                 <br />
                 <br />
-                <button type="submit" name="upload">
+                <button type="submit" name="upload" className="btn btn-success">
                   Upload
                 </button>
               </form>
