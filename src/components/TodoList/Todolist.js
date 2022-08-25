@@ -14,7 +14,6 @@ import Todo from "./Todo/Todo";
 import TodoComplete from "./TodoComplete/TodoComplete";
 
 import { User } from "../../services/UserServices";
-import { showModal, handleOk, handleCancel } from "../../ulti/Popup";
 
 const Todolist = () => {
   const navigate = useNavigate();
