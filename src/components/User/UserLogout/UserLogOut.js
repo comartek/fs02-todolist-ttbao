@@ -2,10 +2,12 @@ import React from "react";
 import { User } from "../../../services/UserServices";
 import { notificationUser } from "../../../notification/notification";
 import { useNavigate } from "react-router-dom";
+
 const UserLogOut = () => {
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const Logout = () => {
-    User.logout().then((res) => {
+    User.logout(token).then((res) => {
       localStorage.clear();
       navigate("/");
       notificationUser("success", "Logout success");

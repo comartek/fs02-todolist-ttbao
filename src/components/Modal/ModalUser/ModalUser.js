@@ -39,13 +39,16 @@ const ModalUser = (props) => {
                   onChange={(e) => setEdittingText(e.target.value)}
                   value={edittingText}
                 />
-                <i class="fas fa-upload ml-2" onClick={() => updateName()}></i>
+                <i
+                  className="fas fa-upload ml-2"
+                  onClick={() => updateName()}
+                ></i>
               </>
             ) : (
               <>
                 <span>Name: {user.name || edittingText} </span>
                 <i
-                  class="fas fa-edit"
+                  className="fas fa-edit"
                   onClick={() => setInfoEditting(true)}
                 ></i>
               </>
@@ -53,11 +56,11 @@ const ModalUser = (props) => {
           </div>
           <div className="age d-flex align-items-center justify-content-between mt-2">
             <span>Age: {user.age} </span>
-            <i class="fas fa-edit"></i>
+            <i className="fas fa-edit"></i>
           </div>
           <div className="email d-flex align-items-center justify-content-between mt-2">
             <span>Email: {user.email} </span>
-            <i class="fas fa-edit"></i>
+            <i className="fas fa-edit"></i>
           </div>
 
           <div>

@@ -67,7 +67,7 @@ export class TodoService {
     });
   };
 
-  edit = (model, id) => {
+  edit = (model, id, token) => {
     return axios({
       url: `${DOMAIN}/task/${id}`,
       method: "PUT",

@@ -22,6 +22,7 @@ const FormLogin = (props) => {
                     type="text"
                     className="form-control"
                     placeholder="Email"
+                    name="email"
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
@@ -35,6 +36,7 @@ const FormLogin = (props) => {
                     type="password"
                     className="form-control"
                     placeholder="Password"
+                    name="password"
                     onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>

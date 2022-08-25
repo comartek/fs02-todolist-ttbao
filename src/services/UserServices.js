@@ -1,5 +1,5 @@
 import axios from "axios";
-import { DOMAIN, token } from "../contants/contants";
+import { DOMAIN } from "../contants/contants";
 
 export class UserService {
   login = (email, password) => {
@@ -32,7 +32,7 @@ export class UserService {
     });
   };
 
-  logout = () => {
+  logout = (token) => {
     return axios({
       url: `${DOMAIN}/user/logout`,
       method: "POST",
@@ -45,6 +45,8 @@ export class UserService {
   };
 
   getUserLogged = () => {
+    console.log();
+    const token = localStorage.getItem("token");
     return axios({
       url: `${DOMAIN}/user/me`,
       method: "GET",
@@ -52,6 +54,13 @@ export class UserService {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+    });
+  };
+
+  getAvatar = (id) => {
+    return axios({
+      url: `${DOMAIN}/user/${id}/avatar`,
+      method: "GET",
     });
   };
 }

@@ -1,4 +1,4 @@
-import Todolist from "./Todolist";
+import Todolist from "./components/TodoList/Todolist";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import UserLogin from "./components/User/UserLogin/UserLogin";
 import UserRegister from "./components/User/UserRegister/UserRegister";
