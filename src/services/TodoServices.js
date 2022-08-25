@@ -42,7 +42,7 @@ export class TodoService {
     });
   };
 
-  getAllTask = () => {
+  getAllTask = (token) => {
     return axios({
       url: `${DOMAIN}/task`,
       method: "GET",
@@ -53,7 +53,7 @@ export class TodoService {
     });
   };
 
-  getAllTaskComplete = () => {
+  getAllTaskComplete = (token) => {
     return axios({
       url: `${DOMAIN}/task?completed=true`,
       method: "GET",

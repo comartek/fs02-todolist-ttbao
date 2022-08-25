@@ -3,12 +3,13 @@ import "./Todo.css";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
 import PaginationTodo from "./components/PaginationTodo";
-import UserInfo from "./components/UserInfo";
+import UserInfo from "./components/User/UserInfo/UserInfo";
 import { Modal, Popconfirm } from "antd";
 import { Avatar } from "antd";
-import SpinLoading from "./components/SpinLoading";
+import SpinLoading from "./components/SpinLoading/SpinLoading";
 import { TodoListService } from "./services/TodoServices";
 import { notificationTodo } from "./notification/notification";
+import UserLogOut from "./components/User/UserLogout/UserLogOut";
 const Todolist = () => {
   const navigate = useNavigate();
   const [newItem, setNewItem] = useState("");
@@ -56,13 +57,13 @@ const Todolist = () => {
   };
 
   const getTask = () => {
-    TodoListService.getAllTask().then((res) => {
+    TodoListService.getAllTask(token).then((res) => {
       setData(res.data.data);
     });
   };
 
   const getTaskCompleted = () => {
-    TodoListService.getAllTaskComplete().then((res) => {
+    TodoListService.getAllTaskComplete(token).then((res) => {
       setTaskCompleted(res.data.data);
     });
   };
@@ -125,10 +126,10 @@ const Todolist = () => {
     });
   };
 
-  const Logout = () => {
-    localStorage.clear();
-    navigate("/");
-  };
+  // const Logout = () => {
+  //   localStorage.clear();
+  //   navigate("/");
+  // };
 
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -190,9 +191,7 @@ const Todolist = () => {
       </Modal>
 
       <div className="container-fluid">
-        <button className="btn btn-danger" onClick={() => Logout()}>
-          <i class="fas fa-sign-out-alt">Log out</i>
-        </button>
+        <UserLogOut />
         <div className="info-user d-flex justify-content-end align-items-center">
           <Avatar src={image} onClick={showModal} size={64} />
         </div>

@@ -1,10 +1,10 @@
 import Todolist from "./Todolist";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import UserLogin from "./components/UserLogin";
-import UserRegister from "./components/UserRegister";
+import UserLogin from "./components/User/UserLogin/UserLogin";
+import UserRegister from "./components/User/UserRegister/UserRegister";
 import React, { useEffect } from "react";
-import PrivateRoutes from "./components/PrivateRoutes";
-import UserInfo from "./components/UserInfo";
+import PrivateRoutes from "./components/PrivateRoutes/PrivateRoutes";
+import UserInfo from "./components/User/UserInfo/UserInfo";
 function App() {
   return (
     <BrowserRouter>

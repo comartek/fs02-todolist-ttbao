@@ -1,56 +1,7 @@
-import React, { useState, useEffect } from "react";
-import "./UserLogin.css";
-import { NavLink, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { notification } from "antd";
-const UserLogin = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const navigate = useNavigate();
-
-  const openNotificationWithIcon = (type) => {
-    if (type === "success") {
-      notification["success"]({
-        message: "Login SuccessFully!!!",
-        description: "Welcome to Todolist",
-      });
-    } else if (type === "error") {
-      notification["error"]({
-        message: "Login Fail!",
-        description: "Email or Password is wrong!!",
-      });
-    }
-  };
-
-  useEffect(() => {
-    const user_logged = localStorage.getItem("token");
-    if (user_logged) {
-      navigate("/todolist");
-    } else {
-      navigate("/");
-    }
-  }, []);
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (email === "" || password === "") {
-      openNotificationWithIcon("error");
-    } else {
-      axios
-        .post(`https://api-nodejs-todolist.herokuapp.com/user/login`, {
-          email: email,
-          password: password,
-        })
-        .then((res) => {
-          console.log(res);
-          console.log(res.data);
-
-          localStorage.setItem("token", res.data.token);
-          navigate("/todolist");
-          openNotificationWithIcon("success");
-        });
-    }
-  };
-
+import React from "react";
+import { NavLink } from "react-router-dom";
+const FormLogin = (props) => {
+  const { handleLogin, setEmail, setPassword } = props;
   return (
     <>
       <div className="container">
@@ -109,4 +60,5 @@ const UserLogin = () => {
     </>
   );
 };
-export default UserLogin;
+
+export default FormLogin;
