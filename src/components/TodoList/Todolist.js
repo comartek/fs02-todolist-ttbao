@@ -12,7 +12,6 @@ import { notificationTodo } from "../../notification/notification";
 import UserLogOut from "../User/UserLogout/UserLogOut";
 import Todo from "./Todo/Todo";
 import TodoComplete from "./TodoComplete/TodoComplete";
-
 import { User } from "../../services/UserServices";
 
 const Todolist = () => {
@@ -61,8 +60,8 @@ const Todolist = () => {
     setIsModalVisible(false);
   };
 
-  const getTask = () => {
-    TodoListService.getAllTask(token).then((res) => {
+  const getTask = async () => {
+    await TodoListService.getAllTask(token).then((res) => {
       setData(res.data.data);
     });
   };
@@ -110,25 +109,33 @@ const Todolist = () => {
   const editTodo = (id) => {
     console.log(id);
     setLoading(true);
-    TodoListService.edit(editingText, id, token).then((res) => {
-      setTodoEditing(null);
-      getTask();
-      setLoading(false);
-      notificationTodo("success", "Edit Task Success");
-    });
+    TodoListService.edit(editingText, id, token)
+      .then((res) => {
+        return getTask();
+      })
+      .then(() => {
+        setTodoEditing(null);
+        setLoading(false);
+        notificationTodo("success", "Edit Task Success");
+      });
   };
 
   const toggleComplete = (todo) => {
     setLoading(true);
     setChecked(true);
-    TodoListService.checkDoneTask(todo._id).then((res) => {
-      getTask();
-      console.log(res.data);
-      setData(data);
-      setLoading(false);
-      setChecked(false);
-      notificationTodo("success", "Check task Complete");
-    });
+    TodoListService.checkDoneTask(todo._id)
+      .then((res) => {
+        console.log(res);
+        setData((prev) => [res.data.data, ...prev]);
+        return getTask();
+      })
+      .then((res) => {
+        // setData(data);
+        console.log(res);
+        setLoading(false);
+        setChecked(false);
+        notificationTodo("success", "Check task Complete");
+      });
   };
 
   const paginate = (pageNumber) => {
@@ -136,18 +143,19 @@ const Todolist = () => {
   };
 
   const fetchPagination = async () => {
-    const res = await axios.get(
-      `https://api-nodejs-todolist.herokuapp.com/task`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    console.log(res.data);
-    setData(res.data.data);
+    // const res = await axios.get(
+    //   `https://api-nodejs-todolist.herokuapp.com/task`,
+    //   {
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       Authorization: `Bearer ${token}`,
+    //     },
+    //   }
+    // );
+    await TodoListService.getAllTask(token).then((res) => {
+      console.log(res.data);
+      setData(res.data.data);
+    });
   };
 
   const getUserInfo = () => {
